@@ -1,0 +1,5 @@
+# Local IMDb database (multi-GB)
+imdb.db
+
+# IMDb datafiles
+*.tsv.gz
