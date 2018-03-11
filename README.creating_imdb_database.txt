@@ -50,7 +50,7 @@ Or alternatively, to execute from an arbitrary directory in the terminal:
 
 `~/anaconda3/bin/s32imdbpy.py ~/Documents/ga-capstone/imdb/ sqlite:///Documents/ga-capstone/imdb/imdb.db`
 
-The program will take some time to execute (1-2 hours depending on your system).
+The program will take some time to execute (1-2 hours depending on your system) and will require several GBs of space on your local hard disk (4.28 GB on my system).
 Once installed, you can use the `imdb('s3','sqlite:///documents/ga-capstone/imdb/imdb.db')`
 method to query the local database.
 
