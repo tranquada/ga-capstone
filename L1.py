@@ -77,7 +77,7 @@ class Line(object):
             {'open': False, 'close': False, 'bolded': None, }
         )
         self.metrics['space'].update(
-            {'lead': 0}
+            {'leading': 0}
         )
 
         # STATUS FLAG INITIALIZATION
@@ -87,7 +87,6 @@ class Line(object):
         """Parses line information from a raw line string with an index."""
 
         # 1. BASIC LINE INFORMATION
-        # ---------------------------------------------------------------------
         # Set data.raw to line data input
         self.data['raw'] = line
 
@@ -99,22 +98,18 @@ class Line(object):
         self.links['L1'] = self.metrics['id']
 
         # 2. EMPTY LINE TEST
-        # ---------------------------------------------------------------------
         if len(line) == 0:
             # Set function.empty to True
             self.function['empty'] = True
             return
 
         # 3. BOLD CHECK ROUTINE
-        # ---------------------------------------------------------------------
         self.parse_bold()
 
         # 4. CHARACTER PARSING ROUTINE
-        # ---------------------------------------------------------------------
         log = self.parse_chars()
 
         # 5. GENERATING REPRESENTATIONAL DATA
-        # ---------------------------------------------------------------------
         self.data['fmt'] = self.generate_fmt()
         self.data['rgx'] = self.generate_rgx()
 
@@ -170,14 +165,14 @@ class Line(object):
         # Initiate loop
         for pos, c in enumerate(self.data['raw']):
             bold = self.is_bold(pos)
-            if c.isspace():
+            if c.isspace():  # Catches space characters
                 char_map += '_'
                 if previous != ' ':
                     char_spc.append((pos, pos))
                 else:
                     char_spc[-1][1] += 1
                 cnt_spc += 1
-            elif PUNC.match(c) is not None:
+            elif PUNC.match(c) is not None:  # Catches punctuation characters
                 if c in char_pnc.keys():
                     char_pnc[c][0] += 1
                     char_pnc[c][1].append(pos)
@@ -193,7 +188,7 @@ class Line(object):
                     char_map += 'P'
                 cnt_pnc += 1
                 cnt_char += 1
-            elif NUM.match(c) is not None:
+            elif NUM.match(c) is not None:  # Catches number characters
                 if bold:
                     char_map += 'N'
                 else:
@@ -204,7 +199,7 @@ class Line(object):
                     char_num[-1][0] += str(c)
                 cnt_num += 1
                 cnt_char += 1
-            elif CHAR.match(c) is not None:
+            elif CHAR.match(c) is not None:  # Catches normal letters
                 cnt_char += 1
                 if html:
                     char_map += c
@@ -221,7 +216,7 @@ class Line(object):
                         else:
                             char_map += 'l'
                         cnt_lower += 1
-            else:
+            else:  # Logs anything else as an error
                 if bold:
                     char_map += 'E'
                 else:
@@ -239,6 +234,12 @@ class Line(object):
         self.update_metric('space', cnt_spc)
         self.update_metric('upper', cnt_upper)
 
+        # Calculate metrics.space.leading
+        if cnt_spc > 0:
+            test = char_spc[0]
+            if test[0] == 0:
+                self.metrics['space']['leading'] = test[1] + 1
+
         # Update data
         self.data['map'] = char_map
         self.data['num'] = char_num
@@ -251,7 +252,12 @@ class Line(object):
         return char_err
 
     def parse_fmt(self):
-        return ''
+        temp = self.data['raw']
+        tags = ['<pre>', '</pre>', '<b>', '</b>']
+        for tag in tags:
+            if tag in temp:
+                temp = temp.replace(tag, '')
+        return temp
 
     def parse_rgx(self):
         return ''
@@ -278,3 +284,19 @@ class Line(object):
             return True
         else:
             return False
+
+    def update_metric(self, metric, num):
+        write = self.metrics[metric]
+        if num > 0:
+            write['has'] = True
+            write['num'] = num
+
+            if metric == 'char':
+                denom = self.metrics['length']
+            elif metric == 'space':
+                denom = self.metrics['length']
+            else:
+                denom = self.metrics['char']
+
+            write['pct'] = num / denom
+            write['p80'] = num / 80
