@@ -1,8 +1,11 @@
 import string        # Python string utilities
 import re            # Python regular expression utilities
 
+# MODULE INTRODUCTION
+"""This module contains functions and objects relevant to L1 (line-level)
+script parsing operations. """
 
-# Module variable declarations
+# MODULE VARIABLE DECLARATIONS
 B_OPEN = re.compile(r'<b>')      # RegEx signature for opening bold tag
 B_CLOSE = re.compile(r'</b>')    # RegEx signature for closing bold tag
 TAG = re.compile(r'</?\w+>')     # RegEx signature for html tags in general
@@ -11,10 +14,16 @@ LOWERS = string.ascii_lowercase  # String of all lowercase letters
 
 
 class Line(object):
-    """Object used to hold line-level data for parsing and manipulation."""
+    """Line-level data object for parsing and manipulation. The Line is
+    equivalent to the L1 level of the script data structure, and is composed
+    of 'data', 'function', 'links', and 'metrics' dictionaries to store
+    line-level traits for analysis. 'function' is unique to the Line data
+    layer, and is intended to store classification data created by the user
+    for training."""
 
-    def __init__(self):
-        self.data = {
+    def __init__(self):  # Initiates empty data object
+        # DATA DICTIONARY INITIALIZATION
+        self.data = {  # Dictionary holding line string and component data
             'raw': None,
             'fmt': None,
             'map': None,
@@ -22,7 +31,9 @@ class Line(object):
             'rgx': None,
             'pnc': None,
         }
-        self.function = {
+
+        # FUNCTION DICTIONARY INITIALIZATION
+        self.function = {  # Dictionary to capture line function classification
             'action': None,
             'camera': None,
             'character': None,
@@ -34,13 +45,17 @@ class Line(object):
             'scene': None,
             'shot_index': None,
         }
-        self.links = {
+
+        # LINK DICTIONARY INITIALIZATION
+        self.links = {  # Dictionary to store links between data levels
             'L1': None,
             'L2': None,
             'L3': None,
             'L4': None,
         }
-        self.metrics = {
+
+        # METRIC DICTIONARY INITIALIZATION
+        self.metrics = {  # Dictionary to store line-level observations
             'length': None,
             'id': None,
         }
@@ -55,3 +70,6 @@ class Line(object):
         self.metrics['bold'].update(
             {'open': False, 'close': False, 'bolded': None, }
         )
+
+        # STATUS FLAG INITIALIZATION
+        self.state = None  # Flag will cycle between None/parse/json/db
