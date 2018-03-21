@@ -9,6 +9,8 @@ script parsing operations. """
 B_OPEN = re.compile(r'<b>')      # RegEx signature for opening bold tag
 B_CLOSE = re.compile(r'</b>')    # RegEx signature for closing bold tag
 TAG = re.compile(r'</?\w+>')     # RegEx signature for html tags in general
+PUNC = re.compile(r'[\!-/<-@\[-`\{-~]')
+CHAR = re.compile(r'\w')         # RegEx signature for characters
 UPPERS = string.ascii_uppercase  # String of all uppercase letters
 LOWERS = string.ascii_lowercase  # String of all lowercase letters
 
@@ -52,6 +54,7 @@ class Line(object):
             'L2': None,
             'L3': None,
             'L4': None,
+            'self': 'L1',
         }
 
         # METRIC DICTIONARY INITIALIZATION
