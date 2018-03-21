@@ -111,9 +111,170 @@ class Line(object):
 
         # 4. CHARACTER PARSING ROUTINE
         # ---------------------------------------------------------------------
-        self.parse_char()
+        log = self.parse_chars()
 
         # 5. GENERATING REPRESENTATIONAL DATA
         # ---------------------------------------------------------------------
         self.data['fmt'] = self.generate_fmt()
         self.data['rgx'] = self.generate_rgx()
+
+        print(log)
+
+    def parse_bold(self):
+        """Extracts information on bolded characters and tags in line."""
+
+        # Initialize working variables
+        bold = self.metrics['bold']
+        data = self.data['raw']
+
+        # Check for opening tags
+        if B_OPEN.match(data) is not None:
+            bold['open'] = True
+            bold['bolded'] = (B_OPEN.match(data).end(), len(data))
+            bold['has'] = True
+
+        if B_CLOSE.match(data) is not None:
+            bold['close'] = True
+            if bold['bolded'] is None:
+                bold['bolded'] = (0, B_CLOSE.match(data).start())
+                if bold['bolded'][1] - bold['bolded'][0] > 0:
+                    bold['has'] = True
+            else:
+                bold['bolded'][1] = B_CLOSE.match(data).start()
+
+        # Set remaining metrics
+        bold['num'] = bold['bolded'][1] - bold['bolded'][0]
+        bold['pct'] = bold['num']/len(data)
+        bold['p80'] = bold['num']/80.
+
+    def parse_chars(self):
+        """Extracts information on characters using helper functions."""
+
+        # Initiate working variables
+        char_map = ''    # Stores mapping of abstract character types
+        char_spc = []    # Stores a list of tuples for spacings / (start, end)
+        char_pnc = {}    # Stores a dict of punctuaton / punc:(count,[locs])
+        char_num = []    # Stores a list of tuples for numbers / (start, num)
+        char_err = []    # Stores a list of tuples for errors / (pos, char)
+        cnt_spc = 0      # Space counter
+        cnt_char = 0     # Character counter
+        cnt_pnc = 0      # Punctuation counter
+        cnt_num = 0      # Number counter
+        cnt_lower = 0    # Lowercase character counter
+        cnt_upper = 0    # Uppercase character counter
+        cnt_err = 0      # Error counter
+        previous = None  # Tracks previous character processed
+        html = False     # Flag to signal if inside html tag
+        bold = False     # Flag to signal if character is bold
+
+        # Initiate loop
+        for pos, c in enumerate(self.data['raw']):
+            bold = self.is_bold(pos)
+            if c.isspace():
+                char_map += '_'
+                if previous != ' ':
+                    char_spc.append((pos, pos))
+                else:
+                    char_spc[-1][1] += 1
+                cnt_spc += 1
+            elif PUNC.match(c) is not None:
+                if c in char_pnc.keys():
+                    char_pnc[c][0] += 1
+                    char_pnc[c][1].append(pos)
+                else:
+                    char_pnc[c] = (1, [pos])
+                if self.is_tag(c):
+                    char_map += 'H'
+                    if c == '<':
+                        html = True
+                    if c == '>':
+                        html = False
+                else:
+                    char_map += 'P'
+                cnt_pnc += 1
+                cnt_char += 1
+            elif NUM.match(c) is not None:
+                if bold:
+                    char_map += 'N'
+                else:
+                    char_map += 'n'
+                if NUM.match(previous) is None:
+                    char_num.append((str(c), pos))
+                else:
+                    char_num[-1][0] += str(c)
+                cnt_num += 1
+                cnt_char += 1
+            elif CHAR.match(c) is not None:
+                cnt_char += 1
+                if html:
+                    char_map += c
+                else:
+                    if c.isupper():
+                        if bold:
+                            char_map += 'U'
+                        else:
+                            char_map += 'u'
+                        cnt_upper += 1
+                    else:
+                        if bold:
+                            char_map += 'L'
+                        else:
+                            char_map += 'l'
+                        cnt_lower += 1
+            else:
+                if bold:
+                    char_map += 'E'
+                else:
+                    char_map += 'e'
+                char_err.append((c, pos))
+                cnt_err += 1
+                cnt_char += 1
+            previous = c
+
+        # Update metrics
+        self.update_metric('char', cnt_char)
+        self.update_metric('lower', cnt_lower)
+        self.update_metric('num', cnt_num)
+        self.update_metric('punc', cnt_pnc)
+        self.update_metric('space', cnt_spc)
+        self.update_metric('upper', cnt_upper)
+
+        # Update data
+        self.data['map'] = char_map
+        self.data['num'] = char_num
+        self.data['pnc'] = char_pnc
+        self.data['spc'] = char_spc
+        self.data['fmt'] = self.parse_fmt()
+        self.data['rgx'] = self.parse_rgx()
+
+        # Return error info for log
+        return char_err
+
+    def parse_fmt(self):
+        return ''
+
+    def parse_rgx(self):
+        return ''
+
+    def is_bold(self, pos):
+        """Checks the bolding status during character parsing."""
+
+        if self.metrics['bold']['bolded'] is None:
+            return False
+        else:
+            bold_range = [num for num in range(
+                self.metrics['bold']['bolded'][0],
+                self.metrics['bold']['bolded'][1]
+            )]
+            if pos in bold_range:
+                return True
+            else:
+                return False
+
+    def is_tag(c):
+        if c == '<':
+            return True
+        elif c == '>':
+            return True
+        else:
+            return False
