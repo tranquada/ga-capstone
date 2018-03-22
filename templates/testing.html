@@ -1,0 +1,182 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Line Report Testing Document</title>
+	<style>
+		.viewer {
+			width: 100%;
+			overflow-x: auto;
+			overflow-y: auto;
+			border: 1px solid #e0e0e0;
+			border-radius: 2px;
+		}
+		.window {
+			width: 100%;
+			padding: 10px;
+		}
+		.title {
+			font-family: "Helvetica Neue", Helvetica, sans-serif;
+			font-size: 20px;
+			border-bottom: 1px solid black;
+			margin-bottom: 10px;
+		}
+		.stringbox {
+			height: 20px;
+			width: 800px;
+			margin-bottom: 10px;
+		}
+		.charbox {
+			display: inline-block;
+			font-family: "Helvetica Neue", Helvetica, sans-serif;
+			font-size: 8px;
+			height: 20px;
+			width: 10px;
+			text-align: center;
+			margin: 0px;
+		}
+		.h {
+			height: 8px;
+			width: 8px;
+			border: 1px solid #999999;
+			color: #999999;
+			font-weight: bold;
+			background-color: #f2f2f2;
+			line-height: 8px;
+		}
+		.s {
+			height: 8px;
+			width: 8px;
+			border: 1px solid #e0e0e0;
+			color: #000000;
+			background-color: #ffffff;
+			line-height: 8px;
+		}
+		.p {
+			height: 8px;
+			width: 8px;
+			border: 1px solid #cc3300;
+			color: #000000;
+			background-color: #f2f2f2;
+			line-height: 8px;
+		}
+		.n {
+			height: 8px;
+			width: 8px;
+			border: 1px solid #b30000;
+			color: #000000;
+			background-color: #ffe0e0;
+			line-height: 8px;
+		}
+		.u {
+			height: 8px;
+			width: 8px;
+			border: 1px solid #004e66;
+			color: #000000;
+			background-color: #e0f9ff;
+			line-height: 8px;
+		}
+		.l {
+			height: 8px;
+			width: 8px;
+			border: 1px solid #004e66;
+			color: #000000;
+			background-color: #ecffe0;
+			line-height: 8px;
+		}
+		.e {
+			height: 8px;
+			width: 8px;
+			border: 1px solid #000000;
+			color: #000000;
+			background-color: #000000;
+			line-height: 8px;
+		}
+		.tag {
+			height: 8px;
+			width: 10px;
+			color: #e0e0e0;
+			border-bottom: 2px solid #999999;
+			line-height: 8px;
+		}
+		.bold {
+			height: 8px;
+			width: 10px;
+			color: #e0e0e0;
+			border-bottom: 2px solid #000000;
+			line-height: 8px;
+		}
+		.plain {
+			height: 8px;
+			width: 10px;
+			color: #e0e0e0;
+			border-bottom: 2px solid #e0e0e0;
+			line-height: 8px;
+		}
+		.blank {
+			height: 8px;
+			width: 10px;
+			color: #e0e0e0;
+			border-bottom: 2px solid #ffffff;
+			line-height: 8px;
+		}
+		.info {
+			border-top: 1px solid black;
+			padding-top: 5px;
+		}
+		.metrics {}
+		.links {}
+		.true {}
+		.false {}
+	</style>
+</head>
+
+<body>
+	<div class="viewer">
+		<div class="window">
+			<div class="title"><strong>L1 : 28.1 : Line</strong> [70:8]</div>
+			<div class="stringbox">
+				<div class="charbox"><div class="h">&lt;</div><div class="tag">0</div></div>
+				<div class="charbox"><div class="h">b</div><div class="tag">1</div></div>
+				<div class="charbox"><div class="h">&gt;</div><div class="tag">2</div></div>
+				<div class="charbox"><div class="s"></div><div class="bold">3</div></div>
+				<div class="charbox"><div class="s"></div><div class="bold">4</div></div>
+				<div class="charbox"><div class="s"></div><div class="bold">5</div></div>
+				<div class="charbox"><div class="s"></div><div class="bold">6</div></div>
+				<div class="charbox"><div class="s"></div><div class="bold">7</div></div>
+				<div class="charbox"><div class="s"></div><div class="bold">8</div></div>
+				<div class="charbox"><div class="s"></div><div class="bold">9</div></div>
+				<div class="charbox"><div class="s"></div><div class="bold">10</div></div>
+				<div class="charbox"><div class="s"></div><div class="bold">11</div></div>
+				<div class="charbox"><div class="u">S</div><div class="bold">12</div></div>
+				<div class="charbox"><div class="u">O</div><div class="bold">13</div></div>
+				<div class="charbox"><div class="u">M</div><div class="bold">14</div></div>
+				<div class="charbox"><div class="u">E</div><div class="bold">15</div></div>
+				<div class="charbox"><div class="u">T</div><div class="bold">16</div></div>
+				<div class="charbox"><div class="u">I</div><div class="bold">17</div></div>
+				<div class="charbox"><div class="u">M</div><div class="bold">18</div></div>
+				<div class="charbox"><div class="u">E</div><div class="bold">19</div></div>
+				<div class="charbox"><div class="s"></div><div class="bold">20</div></div>
+				<div class="charbox"><div class="u">I</div><div class="bold">21</div></div>
+				<div class="charbox"><div class="u">N</div><div class="bold">22</div></div>
+				<div class="charbox"><div class="s"></div><div class="bold">23</div></div>
+				<div class="charbox"><div class="u">T</div><div class="bold">24</div></div>
+				<div class="charbox"><div class="u">H</div><div class="bold">25</div></div>
+				<div class="charbox"><div class="u">E</div><div class="bold">26</div></div>
+				<div class="charbox"><div class="s"></div><div class="bold">27</div></div>
+				<div class="charbox"><div class="u">F</div><div class="bold">28</div></div>
+				<div class="charbox"><div class="u">U</div><div class="bold">29</div></div>
+				<div class="charbox"><div class="u">T</div><div class="bold">30</div></div>
+				<div class="charbox"><div class="u">U</div><div class="bold">31</div></div>
+				<div class="charbox"><div class="u">R</div><div class="bold">32</div></div>
+				<div class="charbox"><div class="u">E</div><div class="bold">33</div></div>
+				<div class="charbox"><div class="s"></div><div class="bold">34</div></div>
+		  </div>
+			<div class="info">
+				<div class="metrics"></div>
+				<div class="links"></div>
+		  </div>
+		</div>
+	</div>
+</body>
+</html>
