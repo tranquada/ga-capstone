@@ -9,11 +9,21 @@ script parsing operations. """
 B_OPEN = re.compile(r'<b>')              # RegEx signature for opening bold tag
 B_CLOSE = re.compile(r'</b>')            # RegEx signature for closing bold tag
 TAG = re.compile(r'</?\w+>')             # RegEx signature for html tags
-PUNC = re.compile(r'[\!-/<-@\[-`\{-~]')  # RegEx signature for punctuation
+PUNC = re.compile(r'[\!-/:-@\[-`\{-~]')  # RegEx signature for punctuation
 NUM = re.compile(r'[0-9]')               # RegEx signature for numbers
 CHAR = re.compile(r'\w')                 # RegEx signature for characters
 UPPERS = string.ascii_uppercase          # String of all uppercase letters
 LOWERS = string.ascii_lowercase          # String of all lowercase letters
+
+
+def is_tag(c):
+    "Checks to see if a punctuation marker is part of an html tag."
+    if c == '<':
+        return True
+    elif c == '>':
+        return True
+    else:
+        return False
 
 
 class Line(object):
@@ -77,7 +87,7 @@ class Line(object):
             {'open': False, 'close': False, 'bolded': None, }
         )
         self.metrics['space'].update(
-            {'leading': 0}
+            {'first': 0}
         )
 
         # STATUS FLAG INITIALIZATION
@@ -110,10 +120,15 @@ class Line(object):
         log = self.parse_chars()
 
         # 5. GENERATING REPRESENTATIONAL DATA
-        self.data['fmt'] = self.generate_fmt()
-        self.data['rgx'] = self.generate_rgx()
+        self.data['fmt'] = self.parse_fmt()
+        self.data['rgx'] = self.parse_rgx()
 
-        print(log)
+        # 6. UPDATE OBJECT STATE
+        self.state = 'parse'
+
+        # 7. PRINT ANY PARSING ERRORS
+        if len(log) > 0:
+            print("Parsing errors encountered:", log)
 
     def parse_bold(self):
         """Extracts information on bolded characters and tags in line."""
@@ -138,9 +153,10 @@ class Line(object):
                 bold['bolded'][1] = B_CLOSE.match(data).start()
 
         # Set remaining metrics
-        bold['num'] = bold['bolded'][1] - bold['bolded'][0]
-        bold['pct'] = bold['num']/len(data)
-        bold['p80'] = bold['num']/80.
+        if bold['has']:
+            bold['num'] = bold['bolded'][1] - bold['bolded'][0]
+            bold['pct'] = bold['num']/len(data)
+            bold['p80'] = bold['num']/80.
 
     def parse_chars(self):
         """Extracts information on characters using helper functions."""
@@ -170,15 +186,15 @@ class Line(object):
                 if previous != ' ':
                     char_spc.append((pos, pos))
                 else:
-                    char_spc[-1][1] += 1
+                    char_spc[-1] = (char_spc[-1][0], char_spc[-1][1] + 1)
                 cnt_spc += 1
             elif PUNC.match(c) is not None:  # Catches punctuation characters
-                if c in char_pnc.keys():
+                if c not in char_pnc.keys():
+                    char_pnc[c] = [1, [pos]]
+                else:
                     char_pnc[c][0] += 1
                     char_pnc[c][1].append(pos)
-                else:
-                    char_pnc[c] = (1, [pos])
-                if self.is_tag(c):
+                if is_tag(c):
                     char_map += 'H'
                     if c == '<':
                         html = True
@@ -196,7 +212,10 @@ class Line(object):
                 if NUM.match(previous) is None:
                     char_num.append((str(c), pos))
                 else:
-                    char_num[-1][0] += str(c)
+                    char_num[-1] = (
+                        char_num[-1][0] + str(c),
+                        char_num[-1][1]
+                    )
                 cnt_num += 1
                 cnt_char += 1
             elif CHAR.match(c) is not None:  # Catches normal letters
@@ -237,30 +256,45 @@ class Line(object):
         # Calculate metrics.space.leading
         if cnt_spc > 0:
             test = char_spc[0]
-            if test[0] == 0:
-                self.metrics['space']['leading'] = test[1] + 1
+            self.metrics['space']['first'] = test[1] - test[0] + 1
 
         # Update data
         self.data['map'] = char_map
         self.data['num'] = char_num
         self.data['pnc'] = char_pnc
         self.data['spc'] = char_spc
-        self.data['fmt'] = self.parse_fmt()
-        self.data['rgx'] = self.parse_rgx()
 
         # Return error info for log
         return char_err
 
     def parse_fmt(self):
-        temp = self.data['raw']
-        tags = ['<pre>', '</pre>', '<b>', '</b>']
-        for tag in tags:
-            if tag in temp:
+        """Creates the simple text string representation of the line."""
+
+        temp = self.data['raw']  # Loads the data.raw string
+        tags = [                 # Stores the html tags to remove in the loop
+            '<pre>',
+            '</pre>',
+            '<b>',
+            '</b>',
+        ]
+        for tag in tags:         # Iterate over tag list
+            if tag in temp:      # If tag is in string replace with empty
                 temp = temp.replace(tag, '')
         return temp
 
     def parse_rgx(self):
-        return ''
+        """Creates the general regex representation of the line."""
+
+        # Initialize the working variables
+        temp = self.data['map']  # Loads the data.map string
+        previous = None          # Tracks the previous character processed
+        html = False             # Tracks if building an html tag
+        working = r''            # Tracks the current regex token being built
+        final = r''              # Tracks the final regex string to output
+        multicount = 0           # Tracks multiple instances of the same char
+
+        # Iterate over the characters in the loop and build the regex sequence
+        return final
 
     def is_bold(self, pos):
         """Checks the bolding status during character parsing."""
@@ -277,14 +311,6 @@ class Line(object):
             else:
                 return False
 
-    def is_tag(c):
-        if c == '<':
-            return True
-        elif c == '>':
-            return True
-        else:
-            return False
-
     def update_metric(self, metric, num):
         write = self.metrics[metric]
         if num > 0:
@@ -296,7 +322,7 @@ class Line(object):
             elif metric == 'space':
                 denom = self.metrics['length']
             else:
-                denom = self.metrics['char']
+                denom = self.metrics['char']['num']
 
             write['pct'] = num / denom
             write['p80'] = num / 80
