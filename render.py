@@ -44,3 +44,11 @@ def line(raw, char_map, states, pad=True):
             filling += char(len(raw) + x, '', 'e', 'blank')
 
     return div('stringbox', filling)
+
+
+def show(content, style):
+    """Takes a string representing HTML content and packages it for display in
+    IPython/Jupyter Notebook"""
+
+    window = div('window', content)
+    return div('viewer', window)
